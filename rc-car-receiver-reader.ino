@@ -13,11 +13,22 @@
 #define RC_CH3_INPUT  A2
 #define RC_CH4_INPUT  A3
 
+// Final readings, used outside of the RC code
 uint16_t rc_values[RC_NUM_CHANNELS];
+// Keep track of the time (from micros()) that the pulses start
 uint32_t rc_start[RC_NUM_CHANNELS];
+// Hold the values for each channel until they can be copied into rc_values[]
+// rc_shared is marked volatile because it can be updated from the interrupt
+// service routines at any time. We don't want to use this outside of the RC
+// RC code exactly because it can be updated at any time.
 volatile uint16_t rc_shared[RC_NUM_CHANNELS];
 
 void rc_read_values() {
+  // Copy the volatile rc_shared[] values into the rc_values[] array. Prior to
+  // copying, disable interrupts to ensure that the interrupts do not trigger
+  // and alter the memory as we are trying to read it. Again, the rc_values[]
+  // should be used throughout the rest of the program (the non remote control
+  // related code).
   noInterrupts();
   memcpy(rc_values, (const void *)rc_shared, sizeof(rc_shared));
   interrupts();
@@ -25,25 +36,22 @@ void rc_read_values() {
 
 void calc_input(uint8_t channel, uint8_t input_pin) {
   if (digitalRead(input_pin) == HIGH) {
+    // Leading edge. The pulse has just started. Store the current time for
+    // later comparison.
     rc_start[channel] = micros();
   } else {
+    // Trailing edge. The pulse has ended. Compare the current time to the value
+    // previously stored. The result indicates the position of our transmitter
+    // stick. Store the value for reading later.
     uint16_t rc_compare = (uint16_t)(micros() - rc_start[channel]);
     rc_shared[channel] = rc_compare;
   }
 }
 
-void calc_ch1() {
-  calc_input(RC_CH1, RC_CH1_INPUT);
-}
-void calc_ch2() {
-  calc_input(RC_CH2, RC_CH2_INPUT);
-}
-void calc_ch3() {
-  calc_input(RC_CH3, RC_CH3_INPUT);
-}
-void calc_ch4() {
-  calc_input(RC_CH4, RC_CH4_INPUT);
-}
+void calc_ch1() { calc_input(RC_CH1, RC_CH1_INPUT); }
+void calc_ch2() { calc_input(RC_CH2, RC_CH2_INPUT); }
+void calc_ch3() { calc_input(RC_CH3, RC_CH3_INPUT); }
+void calc_ch4() { calc_input(RC_CH4, RC_CH4_INPUT); }
 
 void setup() {
   Serial.begin(SERIAL_PORT_SPEED);
@@ -53,6 +61,7 @@ void setup() {
   pinMode(RC_CH3_INPUT, INPUT);
   pinMode(RC_CH4_INPUT, INPUT);
 
+  // Enable interrupts and set functions called on high to low, or vice versa
   enableInterrupt(RC_CH1_INPUT, calc_ch1, CHANGE);
   enableInterrupt(RC_CH2_INPUT, calc_ch2, CHANGE);
   enableInterrupt(RC_CH3_INPUT, calc_ch3, CHANGE);
