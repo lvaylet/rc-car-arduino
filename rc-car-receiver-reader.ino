@@ -13,9 +13,9 @@
 #define RC_CH3_INPUT  A2
 #define RC_CH4_INPUT  A3
 
-// Final readings, used outside of the RC code
+// Final readings, used outside of the RC code. Pulse width, in microseconds.
 uint16_t rc_values[RC_NUM_CHANNELS];
-// Keep track of the time (from micros()) that the pulses start
+// Keep track of the time that the pulses start, in microseconds.
 uint32_t rc_start[RC_NUM_CHANNELS];
 // Hold the values for each channel until they can be copied into rc_values[]
 // rc_shared is marked volatile because it can be updated from the interrupt
