@@ -1,3 +1,20 @@
+/**
+ * Reading Remote Control Receiver Values with Arduino.
+ *
+ * References:
+ * - https://ryanboland.com/blog/reading-rc-receiver-values/
+ *
+ * TODO
+ * - Add a `last_update_time` variable which gets updated every time an
+ *   interrupt fires. If `last_update_time` has not been updated in 2 seconds,
+ *   consider the receiver disconnected and reset the values to 1500.
+ * - Add a `constrain` call to ensure that the values are within the expected
+ *   range of 1000μs - 2000μs.
+ * - If the values that are sent by your receiver are not exactly in the range
+ *   of 1000μs - 2000μs, you may want to add some sort of calibration, perhaps
+ *   with the arduino `map` function.
+ */
+
 #include <EnableInterrupt.h>
 
 #define SERIAL_PORT_SPEED 57600
