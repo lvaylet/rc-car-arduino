@@ -35,6 +35,17 @@
 
 1. Use the throttle and steering inputs on the RF transmitter. Confirm that the readings change, then write down the minimum and maximum values for each channel of interest.
 
+## Readings
+
+### 2018-10-31
+
+Desert Fox v2 with HK-GT2E transmitter/receiver
+
+Channel  | Role     | Pulse Width at Rest (us) | Minimum Pulse Width (us) | Maximum Pulse Width (us)
+-------- | -------- | ------------------------ | ------------------------ | ------------------------
+CH1      | Steering | 1492 - 1496              | 996 - 1000 (Right)       | 1980 - 1984 (Left)
+CH2      | Throttle | 1528 - 1532              | 1036 - 1040 (Reverse)    | 1992 - 1996 (Forward)
+
 ## References
 
 - [Reading Remote Control Receiver Values with Arduino](https://ryanboland.com/blog/reading-rc-receive)
