@@ -11,13 +11,17 @@
  * - Add a `constrain` call to ensure that the values are within the expected
  *   range of 1000μs - 2000μs.
  * - If the values that are sent by your receiver are not exactly in the range
- *   of 1000μs - 2000μs, you may want to add some sort of calibration, perhaps
- *   with the arduino `map` function.
+ *   of 1000μs - 2000μs, add some sort of calibration, perhaps with the
+ *   arduino `map` function.
  */
 
 #include <EnableInterrupt.h>
+#include <timer.h>
 
 #define SERIAL_PORT_SPEED  57600
+
+// How often to write values to serial port, in milliseconds?
+#define OUTPUT_PERIOD_MSEC  50
 
 #define RC_NUM_CHANNELS  4
 
@@ -31,6 +35,8 @@
 #define RC_CH3_INPUT  A2
 #define RC_CH4_INPUT  A3
 
+auto timer = timer_create_default(); // create a timer with default settings
+
 // Final readings, used outside of the RC code. Pulse width, in microseconds.
 uint16_t rc_values[RC_NUM_CHANNELS];
 // Keep track of the time that the pulses start, in microseconds.
@@ -41,7 +47,7 @@ uint32_t rc_start[RC_NUM_CHANNELS];
 // RC code exactly because it can be updated at any time.
 volatile uint16_t rc_shared[RC_NUM_CHANNELS];
 
-void rc_read_values() {
+void read_rc_values() {
   // Copy the volatile rc_shared[] values into the rc_values[] array. Prior to
   // copying, disable interrupts to ensure that the interrupts do not trigger
   // and alter the memory as we are trying to read it. Again, the rc_values[]
@@ -71,6 +77,17 @@ void calc_ch2() { calc_input(RC_CH2, RC_CH2_INPUT); }
 void calc_ch3() { calc_input(RC_CH3, RC_CH3_INPUT); }
 void calc_ch4() { calc_input(RC_CH4, RC_CH4_INPUT); }
 
+bool write_rc_values_to_serial(void *) {
+  read_rc_values();
+  
+  Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print("\t");
+  Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print("\t");
+  Serial.print("CH3:"); Serial.print(rc_values[RC_CH3]); Serial.print("\t");
+  Serial.print("CH4:"); Serial.println(rc_values[RC_CH4]);
+
+  return true; // keep timer active?
+}
+
 void setup() {
   Serial.begin(SERIAL_PORT_SPEED);
 
@@ -84,15 +101,11 @@ void setup() {
   enableInterrupt(RC_CH2_INPUT, calc_ch2, CHANGE);
   enableInterrupt(RC_CH3_INPUT, calc_ch3, CHANGE);
   enableInterrupt(RC_CH4_INPUT, calc_ch4, CHANGE);
+
+  // Configure timer with callback
+  timer.every(OUTPUT_PERIOD_MSEC, write_rc_values_to_serial);
 }
 
 void loop() {
-  rc_read_values();
-
-  Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print("\t");
-  Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print("\t");
-  Serial.print("CH3:"); Serial.print(rc_values[RC_CH3]); Serial.print("\t");
-  Serial.print("CH4:"); Serial.println(rc_values[RC_CH4]);
-
-  delay(200);
+  timer.tick(); // tick the timer
 }

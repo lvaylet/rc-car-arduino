@@ -7,7 +7,7 @@
 1. Download and run the [Arduino IDE](https://www.arduino.cc/en/Main/Software)
 1. Plug your Arduino board and configure it in **Tools > Board** and **Tools > Port**
 1. Open `rc-car-receiver-reader.ino`
-1. Install the `EnableInterrupts` library in **Tools > Manage libraries...** (version 0.9.8 at the time of writing)
+1. Install the `EnableInterrupts` and `arduino-timer` libraries by unzipping `libraries.zip` to your local Arduino libraries folder (`/Users/<user>/Documents/Arduino/libraries` on Mac) or the `libraries` folder in your sketchbook. Refer to https://www.arduino.cc/en/Guide/Libraries for more details on how to install Arduino libraries.
 1. Connect your Arduino board to the RF receiver:
 
     Arduino  | RF Receiver
